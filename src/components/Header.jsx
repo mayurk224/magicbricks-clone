@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { getAuth } from "firebase/auth";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Header() {
   const [isVisible, setIsVisible] = useState(false);
@@ -10,9 +11,67 @@ export default function Header() {
   const menuDropdown = () => {
     setIsVisibleMenu(!isVisibleMenu);
   };
+  const auth = getAuth();
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    photo: "",
+  });
+
+  useEffect(() => {
+    if (auth.currentUser) {
+      setFormData({
+        name: auth.currentUser.displayName || "",
+        email: auth.currentUser.email || "",
+        photo: auth.currentUser.photoURL,
+      });
+    }
+  }, [auth.currentUser]);
+
+  const { name, email, photo } = formData;
+
+  function onLogout() {
+    // Update local storage key "status" with value "not verified"
+    localStorage.setItem('status', 'not verified');
+  
+    auth.signOut();
+    navigate("/");
+  }
+
+  const UserButton = () => {
+    // Assuming you store the user status under the key 'status'
+    const userStatus = localStorage.getItem('status');
+  
+    if (userStatus === 'verified') {
+      return (
+        <button
+          type="button"
+          onClick={profileDropdown}
+          className="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
+        >
+          <span className="sr-only">Open user menu</span>
+          <img
+            className="w-8 h-8 rounded-full object-cover"
+            src={photo}
+            alt="user"
+          />
+        </button>
+      );
+    }
+  
+    return (
+      <Link
+        to="/sign-up"
+        className="text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-full text-sm px-4 py-2 ms:py-1.5 ms:px-3 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+      >
+        Sign Up
+      </Link>
+    );
+  };
   return (
     <div className="">
-      <nav className="bg-white border-gray-200 dark:bg-gray-900">
+      <nav className="bg-white dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
           <div className="logo">
             <Link
@@ -80,34 +139,24 @@ export default function Header() {
             </div>
           </div>
           <div className="dropdowns flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
-          <Link to="/sign-up" type="button" className="text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-full text-sm px-4 py-2 lg:mr-4 ms:py-1.5 ms:px-3 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Sign Up</Link>
-            <button
-              type="button"
-              onClick={profileDropdown}
-              className="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
-            >
-              <span className="sr-only">Open user menu</span>
-              <img
-                className="w-8 h-8 rounded-full object-cover"
-                src="https://images.pexels.com/photos/771742/pexels-photo-771742.jpeg?auto=compress&cs=tinysrgb&w=600"
-                alt="user photo"
-              />
-            </button>
+            <UserButton/>
+          
+            
             {isVisible && (
-              <div className="profiledrop z-50 absolute lg:top-12 lg:right-6 ms:top-14 ms:right-2 my-4 text-base list-none bg-gray-400 divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600">
+              <div className="profiledrop z-50 absolute lg:top-12 w-[170px] lg:right-6 ms:top-14 ms:right-2 my-4 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600">
               <div className="px-4 py-3">
                 <span className="block text-sm text-gray-900 dark:text-white">
-                  Bonnie Green
+                  {name}
                 </span>
                 <span className="block text-sm  text-gray-500 truncate dark:text-gray-400">
-                  name@flowbite.com
+                  {email}
                 </span>
               </div>
               <ul className="py-2">
                 <li>
                   <Link
                     to="/profile"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                    className="block px-4 py-2 cursor-pointer text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
                   >
                     Profile
                   </Link>
@@ -128,10 +177,11 @@ export default function Header() {
                     Earnings
                   </a>
                 </li>
-                <li>
+                <li className="cursor-pointer">
                   <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                  onClick={(event) => { onLogout(); profileDropdown(); }}
+
+                    className="block cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
                   >
                     Sign out
                   </a>
