@@ -3,6 +3,7 @@ import Header from "../components/Header";
 import { Link, useNavigate } from "react-router-dom";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import OAuth from "../components/OAuth";
+import { toast } from "react-toastify";
 
 export default function SignUp() {
     const [formData, setFormData] = useState({
@@ -35,8 +36,8 @@ export default function SignUp() {
           }
           localStorage.setItem('status', 'verified');
         } catch (error) {
-          console.error('Authentication Error:', error.code, error.message);
           toast.error('Unable to authorize user. Please check your credentials.');
+          console.error('Authentication Error:', error.code, error.message);
         } finally {
           setLoading(false);
         }

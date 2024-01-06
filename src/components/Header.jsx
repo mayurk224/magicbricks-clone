@@ -11,6 +11,7 @@ export default function Header() {
   const menuDropdown = () => {
     setIsVisibleMenu(!isVisibleMenu);
   };
+  const [isHovered, setIsHovered] = useState(false);
   const auth = getAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -33,21 +34,22 @@ export default function Header() {
 
   function onLogout() {
     // Update local storage key "status" with value "not verified"
-    localStorage.setItem('status', 'not verified');
-  
+    localStorage.setItem("status", "not verified");
+
     auth.signOut();
     navigate("/");
   }
 
   const UserButton = () => {
     // Assuming you store the user status under the key 'status'
-    const userStatus = localStorage.getItem('status');
-  
-    if (userStatus === 'verified') {
+    const userStatus = localStorage.getItem("status");
+
+    if (userStatus === "verified") {
       return (
         <button
           type="button"
           onClick={profileDropdown}
+          onMouseEnter={() => setIsHovered(true)}
           className="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
         >
           <span className="sr-only">Open user menu</span>
@@ -59,7 +61,6 @@ export default function Header() {
         </button>
       );
     }
-  
     return (
       <Link
         to="/sign-In"
@@ -69,6 +70,33 @@ export default function Header() {
       </Link>
     );
   };
+
+  const [theme, setTheme] = useState(() => localStorage.getItem('color-theme') || 'dark');
+
+  // useEffect to set initial theme on component mount
+  useEffect(() => {
+    const currentTheme = localStorage.getItem('color-theme');
+    if (!currentTheme) {
+      // Set default theme if not present in local storage
+      localStorage.setItem('color-theme', theme);
+    } else {
+      // Set theme from local storage to state
+      setTheme(currentTheme);
+    }
+  }, [theme]);
+
+  // Function to toggle the value of the 'color-theme' key
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+
+    // Update the 'color-theme' key in local storage and state
+    localStorage.setItem('color-theme', newTheme);
+    setTheme(newTheme);
+
+    // Log the updated theme
+    console.log('Theme updated to:', newTheme);
+  };
+
   return (
     <div className="">
       <nav className="bg-white dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
@@ -139,59 +167,67 @@ export default function Header() {
             </div>
           </div>
           <div className="dropdowns flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
-            <UserButton/>
-          
-            
-            {isVisible && (
-              <div className="profiledrop z-50 absolute lg:top-12 w-[170px] lg:right-6 ms:top-14 ms:right-2 my-4 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600">
-              <div className="px-4 py-3">
-                <span className="block text-sm text-gray-900 dark:text-white">
-                  {name}
-                </span>
-                <span className="block text-sm  text-gray-500 truncate dark:text-gray-400">
-                  {email}
-                </span>
-              </div>
-              <ul className="py-2">
-                <li>
-                  <Link
-                    to="/profile"
-                    className="block px-4 py-2 cursor-pointer text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                  >
-                    Profile
-                  </Link>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                  >
-                    Settings
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                  >
-                    Earnings
-                  </a>
-                </li>
-                <li className="cursor-pointer">
-                  <a
-                  onClick={(event) => { onLogout(); profileDropdown(); }}
-
-                    className="block cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                  >
-                    Sign out
-                  </a>
-                </li>
-              </ul>
+            <div>
+            <button onClick={toggleTheme}>Toggle Theme</button>
             </div>
-            )}
+            <UserButton />
+
+            {isVisible ||
+              (isHovered && (
+                <div
+                  onMouseLeave={() => setIsHovered(false)}
+                  className="profiledrop z-50 absolute lg:top-12 w-[170px] lg:right-6 ms:top-14 ms:right-2 my-4 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600"
+                >
+                  <div className="px-4 py-3">
+                    <span className="block text-sm text-gray-900 dark:text-white">
+                      {name}
+                    </span>
+                    <span className="block text-sm  text-gray-500 truncate dark:text-gray-400">
+                      {email}
+                    </span>
+                  </div>
+                  <ul className="py-2">
+                    <li>
+                      <Link
+                        to="/profile"
+                        className="block px-4 py-2 cursor-pointer text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                      >
+                        Profile
+                      </Link>
+                    </li>
+                    <li>
+                      <a
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                      >
+                        Settings
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                      >
+                        Earnings
+                      </a>
+                    </li>
+                    <li className="cursor-pointer">
+                      <a
+                        onClick={(event) => {
+                          onLogout();
+                          profileDropdown();
+                        }}
+                        className="block cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                      >
+                        Sign out
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              ))}
 
             <button
-            onClick={menuDropdown}
+              onClick={menuDropdown}
               type="button"
               className="inline-flex items-center p-2 w-8 h-8 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
             >
@@ -214,50 +250,50 @@ export default function Header() {
             </button>
             {isVisibleMenu && (
               <div className="items-center lg:top-12 lg:right-6 ms:top-14 ms:right-0 justify-between absolute w-full md:hidden">
-              <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
-                <li>
-                  <a
-                    href="#"
-                    className="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500"
-                    aria-current="page"
-                  >
-                    Home
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-                  >
-                    About
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-                  >
-                    Services
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-                  >
-                    Pricing
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-                  >
-                    Contact
-                  </a>
-                </li>
-              </ul>
-            </div>
+                <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
+                  <li>
+                    <a
+                      href="#"
+                      className="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500"
+                      aria-current="page"
+                    >
+                      Home
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#"
+                      className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                    >
+                      About
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#"
+                      className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                    >
+                      Services
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#"
+                      className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                    >
+                      Pricing
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#"
+                      className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                    >
+                      Contact
+                    </a>
+                  </li>
+                </ul>
+              </div>
             )}
           </div>
         </div>
